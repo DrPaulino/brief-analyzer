@@ -6,7 +6,7 @@ Clients rarely send a proper brief. They write things like *"I need a few short 
 
 > The interface is in Brazilian Portuguese. The API also accepts English requests.
 
-**Live demo:** `<your-render-url>` (hosted on a free plan: the first load after a period of inactivity can take about a minute while the server wakes up)
+**Live demo:** `https://brief-anal.onrender.com` (hosted on a free plan: the first load after a period of inactivity can take about a minute while the server wakes up)
 
 <!-- Add a screenshot here: ![Brief Analyzer](docs/screenshot.png) -->
 
