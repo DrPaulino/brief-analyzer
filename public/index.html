@@ -4,43 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brief Analyzer</title>
-<style>
-:root{--bg:#F6F5F2;--card:#fff;--ink:#1A1A18;--mut:#5C5B55;--line:#E3E1DB;--fld:#CFCDC5;--acc:#2F3FD0;--warnbg:#FFF4DC;--warnln:#E8B84A;--warntx:#4A3200;--errbg:#FDECEC;--errtx:#7A1F1F}
-@media (prefers-color-scheme:dark){:root{--bg:#161614;--card:#211F1D;--ink:#EFEDE7;--mut:#A9A79F;--line:#34322E;--fld:#4A4742;--acc:#8E9BFF;--warnbg:#3A2E10;--warnln:#8A6A1F;--warntx:#F6DFA8;--errbg:#3B1C1C;--errtx:#F5C4C4}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
-.wrap{max-width:1200px;margin:0 auto;padding:24px 16px 48px}
-h1{margin:0;font-size:24px}h2{font-size:16px;margin:8px 0 0}.mut{color:var(--mut);font-size:13px}
-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-bottom:24px}
-.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px;align-items:start}
-@media(max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
-.col{display:flex;flex-direction:column;gap:16px}.col .card{margin:0}
-label,.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 6px}
-textarea,input,select{width:100%;font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--fld);border-radius:8px;padding:10px 12px}
-textarea{resize:vertical}
-:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-.btn{min-height:44px;padding:0 16px;border-radius:8px;border:1px solid var(--fld);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
-.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}.btn:disabled{opacity:.6;cursor:wait}
-.chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--fld);background:var(--bg);color:var(--ink);font:inherit;font-size:13px;cursor:pointer;text-align:left}
-.hist{display:block;width:100%;text-align:left;min-height:44px;padding:8px 12px;margin-bottom:8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
-.flex{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.between{justify-content:space-between}
-.badge{display:inline-block;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;background:#EFEDE7;color:#3B3A36}
-.b-meta{background:#E6EEFF;color:#123A99}.b-tiktok{background:#EDEDED;color:#111}.b-google_ads{background:#E3F4EA;color:#0F5A33}.b-warn{background:var(--warnbg);color:var(--warntx)}
-.row{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
-.row label{margin:0;font-weight:500;color:var(--mut)}
-.warn{background:var(--warnbg);border:1px solid var(--warnln);color:var(--warntx);border-radius:12px;padding:20px}
-.warn input{margin:4px 0 10px;background:var(--card)}.warn p{margin:0 0 4px;font-weight:700}
-input.empty{border-color:var(--warnln)}
-.err{background:var(--errbg);color:var(--errtx);border-radius:12px;padding:16px}
-.sk{height:84px;border-radius:12px;background:var(--line);margin-bottom:16px;animation:p 1.2s ease-in-out infinite}
-@keyframes p{50%{opacity:.5}}@media(prefers-reduced-motion:reduce){.sk{animation:none}}
-.sr{position:absolute;left:-9999px}
-</style>
+<link rel="stylesheet" href="/app.css">
 </head>
 <body>
 <div class="wrap">
 <header>
-<div><h1>Brief Analyzer</h1><p class="mut" style="margin:4px 0 0">Transforme pedidos soltos em briefings de criativos digitais.</p></div>
+<div class="brand"><div class="logo" aria-hidden="true">BA</div><div><h1>Brief Analyzer</h1><p class="mut" style="margin:2px 0 0">Transforme pedidos soltos em briefings de criativos digitais.</p></div></div>
+<nav aria-label="Principal"><a href="/" aria-current="page">Analisar</a><a href="/equipes.html">Equipes</a></nav>
 <span class="mut" id="meta"></span>
 </header>
 <div class="grid">
@@ -68,7 +38,7 @@ const PL={meta:'Meta',tiktok:'TikTok',google_ads:'Google Ads',other:'Outra'};
 const FM={video:'Vídeo',static:'Imagem estática',carousel:'Carrossel',search_ad:'Anúncio de pesquisa',other:'Outro'};
 const OBJ={awareness:'Reconhecimento',traffic:'Tráfego',leads:'Leads',sales:'Vendas'};
 const CF={low:'baixa',medium:'média',high:'alta'};
-const EX=['Preciso de 3 vídeos curtos pro TikTok e Reels para lançar o tênis novo, público jovem, pronto até 10/12.','Campanha de leads no Instagram para a clínica, com formulário e 2 imagens.','Faz uns anúncios aí pra divulgar a loja'];
+const EX=['Preciso de 3 vídeos de 15 segundos para Instagram Reels e TikTok, formato vertical 1080x1920, para lançar o tênis AirRun. O objetivo é vender, público de 18 a 30 anos que corre nas capitais. Entrega em 10/12. Orçamento de mídia de R$ 5.000. Usar o manual da marca.','Campanha de leads no Instagram para a clínica, com formulário e 2 imagens.','Faz uns anúncios aí pra divulgar a loja'];
 let cur=null,last='',busy=false;
 const opts=(m,s,blank)=>(blank?'<option value="">Não informado</option>':'')+Object.entries(m).map(([k,v])=>`<option value="${k}"${k===s?' selected':''}>${v}</option>`).join('');
 const out=h=>{$('#out').innerHTML=h;$('#out').setAttribute('aria-busy','false')};
@@ -111,7 +81,7 @@ async function copy(t,m){try{await navigator.clipboard.writeText(t);toast(m)}cat
 $('#req').addEventListener('input',e=>{$('#cnt').textContent=e.target.value.length});
 $('#go').onclick=()=>analyze($('#req').value);
 $('#clr').onclick=()=>{$('#req').value='';$('#cnt').textContent='0';cur=null;$('#meta').textContent='';out('<div class="card"><p class="mut" style="margin:0">Escreva um pedido e clique em "Analisar pedido".</p></div>')};
-$('#ex').innerHTML=['Lançamento em vídeo','Leads no Meta','Pedido incompleto'].map((t,i)=>`<button class="chip" data-e="${i}">${t}</button>`).join('');
+$('#ex').innerHTML=['Pedido completo','Leads no Meta','Pedido incompleto'].map((t,i)=>`<button class="chip" data-e="${i}">${t}</button>`).join('');
 document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
  if(t.dataset.e){$('#req').value=EX[t.dataset.e];$('#cnt').textContent=EX[t.dataset.e].length}
  else if(t.dataset.h){const x=store()[t.dataset.h];$('#req').value=x.text;$('#cnt').textContent=x.text.length;cur=x.data;last=x.text;render()}
@@ -119,7 +89,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)r
  else if(t.id==='retry')analyze($('#req').value);
  else if(t.id==='cj')copy(JSON.stringify(cur.brief,null,2),'JSON copiado');
  else if(t.id==='ct')copy(asText(cur.brief),'Texto copiado');
- else if(t.id==='ok'){cur.confirmed=true;t.textContent='Briefing confirmado';toast('Briefing confirmado')}
+ else if(t.id==='ok'){cur.confirmed=true;t.textContent='Briefing confirmado';toBoard()}
  else if(t.id==='re'){const a=[...document.querySelectorAll('[data-q]')].filter(i=>i.value.trim()).map(i=>`- ${i.dataset.q} ${i.value.trim()}`);
   if(!a.length)return toast('Responda ao menos uma pergunta');
   const txt=last+'\n\nInformações adicionais:\n'+a.join('\n');$('#req').value=txt;$('#cnt').textContent=txt.length;analyze(txt)}});
@@ -128,6 +98,7 @@ document.addEventListener('input',e=>{const t=e.target;if(!cur)return;
   if(t.dataset.k==='platform')t.closest('.card').querySelector('.badge').className='badge b-'+t.value,t.closest('.card').querySelector('.badge').textContent=PL[t.value];
   if(t.type!=='select-one')t.classList.toggle('empty',!t.value)}
  else if(t.dataset.top){cur.brief[t.dataset.top]=t.value||null;cur.confirmed=false}});
+function toBoard(){try{const b=JSON.parse(localStorage.getItem('ba_board')||'[]').filter(x=>x.id!==cur.id);b.unshift({id:cur.id,summary:cur.brief.summary,deliverables:cur.brief.deliverables.map(d=>({...d,done:false}))});localStorage.setItem('ba_board',JSON.stringify(b));toast('Briefing enviado para as equipes')}catch{toast('Não foi possível salvar')}}
 drawHist();
 </script>
 </body>

@@ -59,12 +59,16 @@ function buildLlm(): FallbackClient
 
 loadEnv(__DIR__ . '/../.env');
 
-header('Content-Type: application/json; charset=utf-8');
 $staticPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 if (!str_starts_with($staticPath, '/api/')) {
     $page = $staticPath === '/' ? '/index.html' : $staticPath;
     $file = __DIR__ . $page;
     header('Content-Type: text/html; charset=utf-8');
+    if (!str_contains($page, '..') && $page === '/app.css' && is_file($file)) {
+        header('Content-Type: text/css; charset=utf-8');
+        readfile($file);
+        exit;
+    }
     if (!str_contains($page, '..') && str_ends_with($page, '.html') && is_file($file)) {
         readfile($file);
         exit;
@@ -73,10 +77,11 @@ if (!str_starts_with($staticPath, '/api/')) {
     readfile(__DIR__ . '/error.html');
     exit;
 }
+
+header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: ' . (getenv('CORS_ORIGIN') ?: '*'));
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
-
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
