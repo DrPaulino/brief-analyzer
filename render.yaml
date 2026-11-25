@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: brief-analyzer-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: LLM_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: LLM_MODEL
+        value: openai/gpt-oss-20b
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_FALLBACK_BASE_URL
+        value: https://generativelanguage.googleapis.com/v1beta/openai
+      - key: LLM_FALLBACK_MODEL
+        value: gemini-2.5-flash
+      - key: LLM_FALLBACK_API_KEY
+        sync: false

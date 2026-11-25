@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Algo deu errado · Brief Analyzer</title>
+<style>
+:root{--bg:#F6F5F2;--card:#fff;--ink:#1A1A18;--mut:#5C5B55;--line:#E3E1DB;--acc:#2F3FD0}
+@media (prefers-color-scheme:dark){:root{--bg:#161614;--card:#211F1D;--ink:#EFEDE7;--mut:#A9A79F;--line:#34322E;--acc:#8E9BFF}}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:16px;background:var(--bg);color:var(--ink);font:15px/1.6 Inter,system-ui,sans-serif}
+main{max-width:440px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:32px;text-align:center}
+.code{font-size:44px;font-weight:700;color:var(--acc);margin:0}h1{font-size:20px;margin:8px 0}p{color:var(--mut);margin:0 0 24px}
+.btn{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:8px;border:1px solid var(--acc);background:var(--acc);color:#fff;font:inherit;font-weight:600;text-decoration:none;cursor:pointer}
+.btn.sec{background:transparent;color:var(--ink);border-color:var(--line);margin-left:8px}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<p class="code" id="code">Erro</p>
+<h1 id="title">Algo deu errado</h1>
+<p id="msg">Não foi possível concluir a ação. Tente novamente em instantes.</p>
+<a class="btn" href="/">Voltar ao início</a><button class="btn sec" onclick="history.back()">Voltar</button>
+</main>
+<script>
+const M={
+ offline:['Sem conexão','Servidor indisponível','Não conseguimos falar com o servidor. Verifique sua conexão e tente de novo.'],
+ 404:['404','Página não encontrada','O endereço não existe ou foi movido.'],
+ 500:['500','Erro interno','Algo falhou do nosso lado. Tente novamente em instantes.']
+};
+let c=new URLSearchParams(location.search).get('code');
+if(!c&&location.pathname!=='/error.html')c='404';
+const m=M[c]||['Erro','Algo deu errado','Não foi possível concluir a ação. Tente novamente em instantes.'];
+document.getElementById('code').textContent=m[0];
+document.getElementById('title').textContent=m[1];
+document.getElementById('msg').textContent=m[2];
+</script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brief Analyzer</title>
+<style>
+:root{--bg:#F6F5F2;--card:#fff;--ink:#1A1A18;--mut:#5C5B55;--line:#E3E1DB;--fld:#CFCDC5;--acc:#2F3FD0;--warnbg:#FFF4DC;--warnln:#E8B84A;--warntx:#4A3200;--errbg:#FDECEC;--errtx:#7A1F1F}
+@media (prefers-color-scheme:dark){:root{--bg:#161614;--card:#211F1D;--ink:#EFEDE7;--mut:#A9A79F;--line:#34322E;--fld:#4A4742;--acc:#8E9BFF;--warnbg:#3A2E10;--warnln:#8A6A1F;--warntx:#F6DFA8;--errbg:#3B1C1C;--errtx:#F5C4C4}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:24px 16px 48px}
+h1{margin:0;font-size:24px}h2{font-size:16px;margin:8px 0 0}.mut{color:var(--mut);font-size:13px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px;align-items:start}
+@media(max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
+.col{display:flex;flex-direction:column;gap:16px}.col .card{margin:0}
+label,.lbl{display:block;font-size:13px;font-weight:600;margin:0 0 6px}
+textarea,input,select{width:100%;font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--fld);border-radius:8px;padding:10px 12px}
+textarea{resize:vertical}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.btn{min-height:44px;padding:0 16px;border-radius:8px;border:1px solid var(--fld);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}.btn:disabled{opacity:.6;cursor:wait}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--fld);background:var(--bg);color:var(--ink);font:inherit;font-size:13px;cursor:pointer;text-align:left}
+.hist{display:block;width:100%;text-align:left;min-height:44px;padding:8px 12px;margin-bottom:8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.flex{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.between{justify-content:space-between}
+.badge{display:inline-block;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;background:#EFEDE7;color:#3B3A36}
+.b-meta{background:#E6EEFF;color:#123A99}.b-tiktok{background:#EDEDED;color:#111}.b-google_ads{background:#E3F4EA;color:#0F5A33}.b-warn{background:var(--warnbg);color:var(--warntx)}
+.row{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+.row label{margin:0;font-weight:500;color:var(--mut)}
+.warn{background:var(--warnbg);border:1px solid var(--warnln);color:var(--warntx);border-radius:12px;padding:20px}
+.warn input{margin:4px 0 10px;background:var(--card)}.warn p{margin:0 0 4px;font-weight:700}
+input.empty{border-color:var(--warnln)}
+.err{background:var(--errbg);color:var(--errtx);border-radius:12px;padding:16px}
+.sk{height:84px;border-radius:12px;background:var(--line);margin-bottom:16px;animation:p 1.2s ease-in-out infinite}
+@keyframes p{50%{opacity:.5}}@media(prefers-reduced-motion:reduce){.sk{animation:none}}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div><h1>Brief Analyzer</h1><p class="mut" style="margin:4px 0 0">Transforme pedidos soltos em briefings de criativos digitais.</p></div>
+<span class="mut" id="meta"></span>
+</header>
+<div class="grid">
+<section class="card">
+<label for="req">Descreva o pedido do cliente</label>
+<textarea id="req" rows="8" maxlength="2000" placeholder="Cole aqui o pedido, do jeito que o cliente enviou."></textarea>
+<div class="mut" style="text-align:right;margin:4px 0 12px"><span id="cnt">0</span> / 2000</div>
+<div class="flex" style="margin-bottom:20px"><button class="btn pri" id="go" style="flex:1">Analisar pedido</button><button class="btn" id="clr">Limpar</button></div>
+<p class="lbl">Exemplos para testar</p>
+<div class="flex" id="ex" style="margin-bottom:20px"></div>
+<p class="lbl">Recentes</p>
+<div id="hist"><p class="mut">Nada por aqui ainda.</p></div>
+</section>
+<section class="col" id="out" aria-live="polite">
+<div class="card"><p class="lbl">Resultado</p><p class="mut" style="margin:0">Escreva um pedido e clique em "Analisar pedido". O briefing aparece aqui.</p></div>
+</section>
+</div>
+</div>
+<div class="sr" id="toast" role="status"></div>
+<script>
+const API='';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const PL={meta:'Meta',tiktok:'TikTok',google_ads:'Google Ads',other:'Outra'};
+const FM={video:'Vídeo',static:'Imagem estática',carousel:'Carrossel',search_ad:'Anúncio de pesquisa',other:'Outro'};
+const OBJ={awareness:'Reconhecimento',traffic:'Tráfego',leads:'Leads',sales:'Vendas'};
+const CF={low:'baixa',medium:'média',high:'alta'};
+const EX=['Preciso de 3 vídeos curtos pro TikTok e Reels para lançar o tênis novo, público jovem, pronto até 10/12.','Campanha de leads no Instagram para a clínica, com formulário e 2 imagens.','Faz uns anúncios aí pra divulgar a loja'];
+let cur=null,last='',busy=false;
+const opts=(m,s,blank)=>(blank?'<option value="">Não informado</option>':'')+Object.entries(m).map(([k,v])=>`<option value="${k}"${k===s?' selected':''}>${v}</option>`).join('');
+const out=h=>{$('#out').innerHTML=h;$('#out').setAttribute('aria-busy','false')};
+const toast=m=>{$('#toast').textContent=m};
+function store(){try{return JSON.parse(localStorage.getItem('ba_hist')||'[]')}catch{return[]}}
+function save(text,data){try{localStorage.setItem('ba_hist',JSON.stringify([{text,data},...store().filter(x=>x.text!==text)].slice(0,5)))}catch{}drawHist()}
+function drawHist(){const h=store();$('#hist').innerHTML=h.length?h.map((x,i)=>`<button class="hist" data-h="${i}">${esc(x.text.slice(0,60))}${x.text.length>60?'…':''}</button>`).join(''):'<p class="mut">Nada por aqui ainda.</p>'}
+function card(d,i){return `<article class="card"><div class="flex between" style="margin-bottom:8px"><span class="badge b-${d.platform}">${PL[d.platform]}</span><button class="btn" data-del="${i}" aria-label="Remover entregável ${i+1}">Remover</button></div>
+<div class="row"><label for="p${i}">Plataforma</label><select id="p${i}" data-i="${i}" data-k="platform">${opts(PL,d.platform)}</select></div>
+<div class="row"><label for="f${i}">Formato</label><select id="f${i}" data-i="${i}" data-k="format">${opts(FM,d.format)}</select></div>
+<div class="row"><label for="s${i}">Specs</label><input id="s${i}" data-i="${i}" data-k="specs" value="${esc(d.specs)}" placeholder="Não informado" class="${d.specs?'':'empty'}"></div>
+<div class="row"><label for="n${i}">Notas</label><input id="n${i}" data-i="${i}" data-k="copy_notes" value="${esc(d.copy_notes)}" placeholder="Não informado"></div>
+<div class="row"><label for="d${i}">Prazo</label><input id="d${i}" type="date" data-i="${i}" data-k="deadline" value="${esc(d.deadline)}" class="${d.deadline?'':'empty'}"></div></article>`}
+function render(){const b=cur.brief,m=cur.meta,low=b.confidence!=='high';
+$('#meta').textContent=`Modelo: ${m.provider} · ${(m.latency_ms/1000).toFixed(1).replace('.',',')} s${m.retried?' · repetiu':''}${m.fallback_used?' · reserva':''}`;
+out(`<div class="card flex between"><div><p class="lbl" style="margin:0">Análise concluída</p><p class="mut" style="margin:2px 0 0">Gerado por IA. Revise antes de usar.</p></div><span class="badge ${low?'b-warn':''}">Confiança ${CF[b.confidence]}${low?': revise os campos':''}</span></div>
+${b.missing_info.length?`<div class="warn"><p>Faltam ${b.missing_info.length} informações</p>${b.missing_info.map((q,i)=>`<label for="q${i}" style="font-weight:400">${esc(q)}</label><input id="q${i}" data-q="${esc(q)}" placeholder="Sua resposta">`).join('')}<button class="btn" id="re" style="background:var(--warntx);color:var(--warnbg);border-color:var(--warntx)">Responder e reanalisar</button></div>`:''}
+<div class="card"><label for="sm">Resumo</label><textarea id="sm" rows="3" data-top="summary">${esc(b.summary)}</textarea>
+<div class="row" style="margin-top:12px"><label for="ob">Objetivo</label><select id="ob" data-top="objective">${opts(OBJ,b.objective,1)}</select></div>
+<div class="row"><label for="au">Público</label><input id="au" data-top="audience" value="${esc(b.audience)}" placeholder="Não informado" class="${b.audience?'':'empty'}"></div></div>
+<h2>Entregáveis (${b.deliverables.length})</h2>
+${b.deliverables.map(card).join('')||'<p class="mut">Nenhum entregável identificado.</p>'}
+<div class="flex"><button class="btn" id="cj">Copiar JSON</button><button class="btn" id="ct">Copiar como texto</button><button class="btn pri" id="ok" style="margin-left:auto">${cur.confirmed?'Briefing confirmado':'Confirmar briefing'}</button></div>`)}
+function showErr(e){out(`<div class="err" role="alert"><p style="margin:0 0 8px;font-weight:700">${esc(e.message)}</p>${e.retryable?'<button class="btn" id="retry">Tentar novamente</button>':''}</div>`)}
+async function analyze(text){
+ if(busy)return;text=text.trim();
+ if(!text)return showErr({message:'Descreva o pedido antes de analisar.'});
+ busy=true;$('#go').disabled=true;$('#go').textContent='Analisando…';
+ out('<div class="sk"></div><div class="sk"></div><div class="sk"></div>');$('#out').setAttribute('aria-busy','true');
+ let res,data={};
+ try{res=await fetch(API+'/api/briefs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,language:'pt-BR'})})}
+ catch{return location.href='/error.html?code=offline'}
+ try{data=await res.json()}catch{}
+ busy=false;$('#go').disabled=false;$('#go').textContent='Analisar pedido';
+ if(res.ok){cur=data;last=text;save(text,data);render();return}
+ if(res.status===500||!data.error)return location.href='/error.html?code='+res.status;
+ showErr(data.error)}
+function asText(b){return['Resumo: '+b.summary,'Objetivo: '+(OBJ[b.objective]||'não informado'),'Público: '+(b.audience||'não informado'),'','Entregáveis:',...b.deliverables.map((d,i)=>`${i+1}. ${PL[d.platform]} · ${FM[d.format]} · ${d.specs||'specs não informadas'} · prazo: ${d.deadline||'não informado'}${d.copy_notes?' · '+d.copy_notes:''}`),...(b.missing_info.length?['','Pendências:',...b.missing_info.map(q=>'- '+q)]:[])].join('\n')}
+async function copy(t,m){try{await navigator.clipboard.writeText(t);toast(m)}catch{toast('Não foi possível copiar')}}
+$('#req').addEventListener('input',e=>{$('#cnt').textContent=e.target.value.length});
+$('#go').onclick=()=>analyze($('#req').value);
+$('#clr').onclick=()=>{$('#req').value='';$('#cnt').textContent='0';cur=null;$('#meta').textContent='';out('<div class="card"><p class="mut" style="margin:0">Escreva um pedido e clique em "Analisar pedido".</p></div>')};
+$('#ex').innerHTML=['Lançamento em vídeo','Leads no Meta','Pedido incompleto'].map((t,i)=>`<button class="chip" data-e="${i}">${t}</button>`).join('');
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
+ if(t.dataset.e){$('#req').value=EX[t.dataset.e];$('#cnt').textContent=EX[t.dataset.e].length}
+ else if(t.dataset.h){const x=store()[t.dataset.h];$('#req').value=x.text;$('#cnt').textContent=x.text.length;cur=x.data;last=x.text;render()}
+ else if(t.dataset.del){cur.brief.deliverables.splice(t.dataset.del,1);render()}
+ else if(t.id==='retry')analyze($('#req').value);
+ else if(t.id==='cj')copy(JSON.stringify(cur.brief,null,2),'JSON copiado');
+ else if(t.id==='ct')copy(asText(cur.brief),'Texto copiado');
+ else if(t.id==='ok'){cur.confirmed=true;t.textContent='Briefing confirmado';toast('Briefing confirmado')}
+ else if(t.id==='re'){const a=[...document.querySelectorAll('[data-q]')].filter(i=>i.value.trim()).map(i=>`- ${i.dataset.q} ${i.value.trim()}`);
+  if(!a.length)return toast('Responda ao menos uma pergunta');
+  const txt=last+'\n\nInformações adicionais:\n'+a.join('\n');$('#req').value=txt;$('#cnt').textContent=txt.length;analyze(txt)}});
+document.addEventListener('input',e=>{const t=e.target;if(!cur)return;
+ if(t.dataset.k){const d=cur.brief.deliverables[t.dataset.i];d[t.dataset.k]=t.value||null;cur.confirmed=false;
+  if(t.dataset.k==='platform')t.closest('.card').querySelector('.badge').className='badge b-'+t.value,t.closest('.card').querySelector('.badge').textContent=PL[t.value];
+  if(t.type!=='select-one')t.classList.toggle('empty',!t.value)}
+ else if(t.dataset.top){cur.brief[t.dataset.top]=t.value||null;cur.confirmed=false}});
+drawHist();
+</script>
+</body>
+</html>
