@@ -83,19 +83,51 @@ final class BriefService
     /** @param array<string, mixed> $d */
     private function normalize(array $d): array
     {
-        return [
-            'summary' => trim($d['summary']),
-            'objective' => $d['objective'] ?? null,
-            'audience' => $d['audience'] ?? null,
-            'deliverables' => array_map(static fn (array $x): array => [
+        $today = (new \DateTimeImmutable('now', new \DateTimeZone('America/Sao_Paulo')))->format('Y-m-d');
+
+        $deliverables = array_map(static function (array $x) use ($today): array {
+            $deadline = $x['deadline'] ?? null;
+            if ($deadline !== null && $deadline < $today) {
+                $deadline = null; // a deadline in the past is almost certainly a mistake
+            }
+
+            return [
                 'platform' => $x['platform'],
                 'format' => $x['format'],
                 'specs' => $x['specs'] ?? null,
                 'copy_notes' => $x['copy_notes'] ?? null,
-                'deadline' => $x['deadline'] ?? null,
-            ], $d['deliverables']),
+                'deadline' => $deadline,
+            ];
+        }, $d['deliverables']);
+
+        $brief = [
+            'summary' => trim($d['summary']),
+            'objective' => $d['objective'] ?? null,
+            'audience' => $d['audience'] ?? null,
+            'deliverables' => $deliverables,
             'missing_info' => array_values($d['missing_info'] ?? []),
-            'confidence' => $d['confidence'],
         ];
+        $brief['confidence'] = $this->confidence($brief);
+
+        return $brief;
+    }
+
+    /** @param array<string, mixed> $b */
+    private function confidence(array $b): string
+    {
+        $questions = count($b['missing_info']);
+
+        if ($b['deliverables'] === [] || $questions >= 3) {
+            return 'low';
+        }
+
+        $complete = $b['objective'] !== null && $b['audience'] !== null;
+        foreach ($b['deliverables'] as $deliverable) {
+            if ($deliverable['deadline'] === null) {
+                $complete = false;
+            }
+        }
+
+        return ($complete && $questions <= 1) ? 'high' : 'medium';
     }
 }

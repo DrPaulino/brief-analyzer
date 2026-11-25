@@ -22,9 +22,11 @@ final class BriefValidator
 
         $summary = $data['summary'] ?? null;
         if (!is_string($summary) || trim($summary) === '') {
-            $errors[] = 'summary must be a non-empty string';
+          $errors[] = 'summary must be a non-empty string';
         }
-
+        if (is_string($summary) && mb_strlen($summary) > 500) {
+          $errors[] = 'summary must be at most 500 characters';
+        }
         $objective = $data['objective'] ?? null;
         if ($objective !== null && !in_array($objective, self::OBJECTIVES, true)) {
             $errors[] = 'objective must be one of ' . implode(', ', self::OBJECTIVES) . ' or null';
@@ -34,7 +36,9 @@ final class BriefValidator
         if ($audience !== null && !is_string($audience)) {
             $errors[] = 'audience must be a string or null';
         }
-
+        if (is_string($audience) && mb_strlen($audience) > 300) {
+         $errors[] = 'audience must be at most 300 characters';
+        }
         $deliverables = $data['deliverables'] ?? null;
         if (!is_array($deliverables) || !array_is_list($deliverables)) {
             $errors[] = 'deliverables must be a list';
