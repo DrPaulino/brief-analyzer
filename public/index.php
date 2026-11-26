@@ -64,8 +64,9 @@ if (!str_starts_with($staticPath, '/api/')) {
     $page = $staticPath === '/' ? '/index.html' : $staticPath;
     $file = __DIR__ . $page;
     header('Content-Type: text/html; charset=utf-8');
-    if (!str_contains($page, '..') && $page === '/app.css' && is_file($file)) {
-        header('Content-Type: text/css; charset=utf-8');
+
+    if (!str_contains($page, '..') && in_array($page, ['/app.css', '/app.js'], true) && is_file($file)) {
+        header('Content-Type: ' . (str_ends_with($page, '.js') ? 'text/javascript' : 'text/css') . '; charset=utf-8');
         readfile($file);
         exit;
     }

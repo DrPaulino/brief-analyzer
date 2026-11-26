@@ -5,36 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Equipes · Brief Analyzer</title>
 <link rel="stylesheet" href="/app.css">
+<script src="/app.js"></script>
 </head>
 <body>
 <div class="wrap">
 <header>
 <div class="brand"><div class="logo" aria-hidden="true">BA</div><div><h1>Brief Analyzer</h1><p class="mut" style="margin:2px 0 0">Transforme pedidos soltos em briefings de criativos digitais.</p></div></div>
-<nav aria-label="Principal"><a href="/">Analisar</a><a href="/equipes.html" aria-current="page">Equipes</a></nav>
-<span></span>
+<div class="hr"><nav aria-label="Principal"><a href="/">Analisar</a><a href="/equipes.html" aria-current="page">Equipes</a></nav><button class="btn icon" id="th" aria-label="Alternar tema claro e escuro"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button></div>
 </header>
 <div class="flex between" style="margin-bottom:16px"><p class="mut" id="sum" style="margin:0"></p><button class="btn" id="clr">Limpar quadro</button></div>
-<main class="board" id="board"></main>
+<main class="lanes" id="board"></main>
 </div>
 <script>
-const KEY='ba_board',$=s=>document.querySelector(s);
-const T={meta:'Equipe Meta',tiktok:'Equipe TikTok',google_ads:'Equipe Google Ads',other:'Outras plataformas'};
+const KEY='ba_board';
 const FM={video:'Vídeo',static:'Imagem estática',carousel:'Carrossel',search_ad:'Anúncio de pesquisa',other:'Outro'};
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ORDER=['instagram','facebook','whatsapp','meta','tiktok','search','youtube','display','google_ads','other'];
 const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}};
 const save=b=>{try{localStorage.setItem(KEY,JSON.stringify(b))}catch{}};
 const fmt=d=>d?d.split('-').reverse().join('/'):'Sem prazo';
 function render(){
  const today=new Date().toLocaleDateString('sv-SE'),items=[];
- load().forEach((b,bi)=>b.deliverables.forEach((d,di)=>items.push({...d,bi,di,title:b.summary})));
- const open=items.filter(x=>!x.done).length;
- $('#sum').textContent=items.length?open+' de '+items.length+' entregas em aberto':'';
- if(!items.length){$('#board').innerHTML='<div class="card" style="grid-column:1/-1"><p class="lbl">Nenhuma entrega ainda</p><p class="mut" style="margin:0 0 12px">Analise um pedido e clique em "Confirmar briefing". As entregas aparecem aqui, separadas por equipe.</p><a class="btn pri" href="/" style="display:inline-flex;align-items:center;text-decoration:none">Analisar um pedido</a></div>';return}
- $('#board').innerHTML=Object.keys(T).map(t=>{
-  const list=items.filter(x=>x.platform===t).sort((a,b)=>(a.deadline||'9')<(b.deadline||'9')?-1:1);
-  if(!list.length&&t==='other')return'';
-  const rows=list.map(x=>`<label class="it${x.done?' done':''}"><input type="checkbox" data-b="${x.bi}" data-d="${x.di}"${x.done?' checked':''}><div><p class="ttl">${esc(x.title)}</p><div class="flex"><span class="badge">${FM[x.format]}</span><span class="badge${x.deadline&&x.deadline<today&&!x.done?' b-warn':''}">${fmt(x.deadline)}</span></div>${x.specs?'<p class="mut">'+esc(x.specs)+'</p>':''}${x.copy_notes?'<p class="mut">'+esc(x.copy_notes)+'</p>':''}</div></label>`).join('');
-  return `<section class="team t-${t}"><h2><span class="dot"></span>${T[t]}<span class="count">${list.filter(x=>!x.done).length}</span></h2>${rows||'<p class="mut" style="padding:0 16px 16px;margin:0">Sem entregas para esta equipe.</p>'}</section>`}).join('')}
+ load().forEach((b,bi)=>b.deliverables.forEach((d,di)=>items.push({...d,bi,di,title:b.summary,k:key(d)})));
+ $('#sum').textContent=items.length?items.filter(x=>!x.done).length+' de '+items.length+' entregas em aberto':'';
+ if(!items.length){$('#board').innerHTML='<div class="card" style="flex:1"><p class="lbl">Nenhuma entrega ainda</p><p class="mut" style="margin:0 0 12px">Analise um pedido e clique em "Confirmar briefing". As entregas aparecem aqui, uma coluna por serviço.</p><a class="btn pri" href="/" style="display:inline-flex;align-items:center;text-decoration:none">Analisar um pedido</a></div>';return}
+ $('#board').innerHTML=ORDER.map(k=>{
+  const list=items.filter(x=>x.k===k).sort((a,b)=>(a.deadline||'9')<(b.deadline||'9')?-1:1);
+  if(!list.length)return'';
+  const cards=list.map(x=>`<label class="kc g-${k}${x.done?' done':''}"><div class="kh"><span>${FM[x.format]}</span><span class="dl${x.deadline&&x.deadline<today&&!x.done?' od':''}">${fmt(x.deadline)}</span></div><div class="kb"><p class="ttl">${esc(x.title)}</p>${x.specs?'<p class="mut">'+esc(x.specs)+'</p>':''}${x.copy_notes?'<p class="mut">'+esc(x.copy_notes)+'</p>':''}<span class="ck"><input type="checkbox" data-b="${x.bi}" data-d="${x.di}"${x.done?' checked':''}>Concluído</span></div></label>`).join('');
+  return `<section class="lane g-${k}"><div class="lh"><span class="ic">${ICON[SV[k].i||k]}</span><h2>${SV[k].n}</h2><span class="count">${list.filter(x=>!x.done).length}</span></div>${cards}</section>`}).join('')}
 document.addEventListener('change',e=>{const t=e.target;if(t.dataset.b===undefined)return;const d=load();d[+t.dataset.b].deliverables[+t.dataset.d].done=t.checked;save(d);render()});
 $('#clr').onclick=()=>{if(confirm('Remover todas as entregas do quadro?')){save([]);render()}};
 render();

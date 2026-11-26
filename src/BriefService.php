@@ -7,6 +7,11 @@ namespace App;
 final class BriefService
 {
     private const LANGUAGES = ['pt-BR', 'en'];
+    private const PLATFORM_SERVICES = [
+        'meta' => ['instagram', 'facebook', 'whatsapp'],
+        'tiktok' => ['tiktok'],
+        'google_ads' => ['search', 'youtube', 'display'],
+    ];
 
     public function __construct(
         private LlmClient $llm,
@@ -91,8 +96,14 @@ final class BriefService
                 $deadline = null; // a deadline in the past is almost certainly a mistake
             }
 
+            $service = $x['service'] ?? null;
+            if (!in_array($service, self::PLATFORM_SERVICES[$x['platform']] ?? [], true)) {
+                $service = null; // service must belong to the platform
+            }
+
             return [
                 'platform' => $x['platform'],
+                'service' => $service,
                 'format' => $x['format'],
                 'specs' => $x['specs'] ?? null,
                 'copy_notes' => $x['copy_notes'] ?? null,

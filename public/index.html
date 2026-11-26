@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brief Analyzer</title>
 <link rel="stylesheet" href="/app.css">
+<script src="/app.js"></script>
 </head>
 <body>
 <div class="wrap">
 <header>
 <div class="brand"><div class="logo" aria-hidden="true">BA</div><div><h1>Brief Analyzer</h1><p class="mut" style="margin:2px 0 0">Transforme pedidos soltos em briefings de criativos digitais.</p></div></div>
-<nav aria-label="Principal"><a href="/" aria-current="page">Analisar</a><a href="/equipes.html">Equipes</a></nav>
-<span class="mut" id="meta"></span>
+<div class="hr"><nav aria-label="Principal"><a href="/" aria-current="page">Analisar</a><a href="/equipes.html">Equipes</a></nav><span class="mut" id="meta"></span><button class="btn icon" id="th" aria-label="Alternar tema claro e escuro"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button></div>
 </header>
 <div class="grid">
 <section class="card">
@@ -32,8 +32,6 @@
 <div class="sr" id="toast" role="status"></div>
 <script>
 const API='';
-const $=s=>document.querySelector(s);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const PL={meta:'Meta',tiktok:'TikTok',google_ads:'Google Ads',other:'Outra'};
 const FM={video:'Vídeo',static:'Imagem estática',carousel:'Carrossel',search_ad:'Anúncio de pesquisa',other:'Outro'};
 const OBJ={awareness:'Reconhecimento',traffic:'Tráfego',leads:'Leads',sales:'Vendas'};
@@ -46,16 +44,17 @@ const toast=m=>{$('#toast').textContent=m};
 function store(){try{return JSON.parse(localStorage.getItem('ba_hist')||'[]')}catch{return[]}}
 function save(text,data){try{localStorage.setItem('ba_hist',JSON.stringify([{text,data},...store().filter(x=>x.text!==text)].slice(0,5)))}catch{}drawHist()}
 function drawHist(){const h=store();$('#hist').innerHTML=h.length?h.map((x,i)=>`<button class="hist" data-h="${i}">${esc(x.text.slice(0,60))}${x.text.length>60?'…':''}</button>`).join(''):'<p class="mut">Nada por aqui ainda.</p>'}
-function card(d,i){return `<article class="card"><div class="flex between" style="margin-bottom:8px"><span class="badge b-${d.platform}">${PL[d.platform]}</span><button class="btn" data-del="${i}" aria-label="Remover entregável ${i+1}">Remover</button></div>
+function card(d,i){return `<article class="card"><div class="flex between" style="margin-bottom:8px">${chip(d)}<button class="btn" data-del="${i}" aria-label="Remover entregável ${i+1}">Remover</button></div>
 <div class="row"><label for="p${i}">Plataforma</label><select id="p${i}" data-i="${i}" data-k="platform">${opts(PL,d.platform)}</select></div>
 <div class="row"><label for="f${i}">Formato</label><select id="f${i}" data-i="${i}" data-k="format">${opts(FM,d.format)}</select></div>
+<div class="row"><label for="v${i}">Serviço</label><select id="v${i}" data-i="${i}" data-k="service">${svOpts(d.platform,d.service)}</select></div>
 <div class="row"><label for="s${i}">Specs</label><input id="s${i}" data-i="${i}" data-k="specs" value="${esc(d.specs)}" placeholder="Não informado" class="${d.specs?'':'empty'}"></div>
 <div class="row"><label for="n${i}">Notas</label><input id="n${i}" data-i="${i}" data-k="copy_notes" value="${esc(d.copy_notes)}" placeholder="Não informado"></div>
 <div class="row"><label for="d${i}">Prazo</label><input id="d${i}" type="date" data-i="${i}" data-k="deadline" value="${esc(d.deadline)}" class="${d.deadline?'':'empty'}"></div></article>`}
 function render(){const b=cur.brief,m=cur.meta,low=b.confidence!=='high';
 $('#meta').textContent=`Modelo: ${m.provider} · ${(m.latency_ms/1000).toFixed(1).replace('.',',')} s${m.retried?' · repetiu':''}${m.fallback_used?' · reserva':''}`;
 out(`<div class="card flex between"><div><p class="lbl" style="margin:0">Análise concluída</p><p class="mut" style="margin:2px 0 0">Gerado por IA. Revise antes de usar.</p></div><span class="badge ${low?'b-warn':''}">Confiança ${CF[b.confidence]}${low?': revise os campos':''}</span></div>
-${b.missing_info.length?`<div class="warn"><p>Faltam ${b.missing_info.length} informações</p>${b.missing_info.map((q,i)=>`<label for="q${i}" style="font-weight:400">${esc(q)}</label><input id="q${i}" data-q="${esc(q)}" placeholder="Sua resposta">`).join('')}<button class="btn" id="re" style="background:var(--warntx);color:var(--warnbg);border-color:var(--warntx)">Responder e reanalisar</button></div>`:''}
+${b.missing_info.length?`<div class="warn"><p>Faltam ${b.missing_info.length} informações</p>${b.missing_info.map((q,i)=>`<label for="q${i}" style="font-weight:400">${esc(q)}</label><input id="q${i}" data-q="${esc(q)}" placeholder="Sua resposta">`).join('')}<button class="btn" id="re" style="background:var(--warntx);color:var(--accink);border-color:var(--warntx)">Responder e reanalisar</button></div>`:''}
 <div class="card"><label for="sm">Resumo</label><textarea id="sm" rows="3" data-top="summary">${esc(b.summary)}</textarea>
 <div class="row" style="margin-top:12px"><label for="ob">Objetivo</label><select id="ob" data-top="objective">${opts(OBJ,b.objective,1)}</select></div>
 <div class="row"><label for="au">Público</label><input id="au" data-top="audience" value="${esc(b.audience)}" placeholder="Não informado" class="${b.audience?'':'empty'}"></div></div>
@@ -95,7 +94,8 @@ document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)r
   const txt=last+'\n\nInformações adicionais:\n'+a.join('\n');$('#req').value=txt;$('#cnt').textContent=txt.length;analyze(txt)}});
 document.addEventListener('input',e=>{const t=e.target;if(!cur)return;
  if(t.dataset.k){const d=cur.brief.deliverables[t.dataset.i];d[t.dataset.k]=t.value||null;cur.confirmed=false;
-  if(t.dataset.k==='platform')t.closest('.card').querySelector('.badge').className='badge b-'+t.value,t.closest('.card').querySelector('.badge').textContent=PL[t.value];
+  if(t.dataset.k==='platform'){d.service=null;t.closest('.card').querySelector('[data-k=service]').innerHTML=svOpts(t.value,null)}
+  if(t.dataset.k==='platform'||t.dataset.k==='service')t.closest('.card').querySelector('.chip-s').outerHTML=chip(d);
   if(t.type!=='select-one')t.classList.toggle('empty',!t.value)}
  else if(t.dataset.top){cur.brief[t.dataset.top]=t.value||null;cur.confirmed=false}});
 function toBoard(){try{const b=JSON.parse(localStorage.getItem('ba_board')||'[]').filter(x=>x.id!==cur.id);b.unshift({id:cur.id,summary:cur.brief.summary,deliverables:cur.brief.deliverables.map(d=>({...d,done:false}))});localStorage.setItem('ba_board',JSON.stringify(b));toast('Briefing enviado para as equipes')}catch{toast('Não foi possível salvar')}}

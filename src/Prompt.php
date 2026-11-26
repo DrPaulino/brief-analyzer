@@ -23,6 +23,7 @@ Rules:
 - Ask at most 5 questions in "missing_info", only about what blocks production (objective, audience, specs, deadline, budget). Skip optional details like music or style unless the request mentions them.
 - Write questions in plain language. Never show technical values such as "awareness, traffic, leads, sales".
 - Today is $today. If a date has day and month but no year, use the next upcoming date.
+- "service" is the exact place where the ad runs. meta: instagram, facebook or whatsapp. tiktok: tiktok. google_ads: search, youtube or display. Reels and Stories mean instagram. If unclear, use null.
 
 JSON shape:
 {
@@ -33,6 +34,7 @@ JSON shape:
     {
       "platform": "meta" | "tiktok" | "google_ads" | "other",
       "format": "video" | "static" | "carousel" | "search_ad" | "other",
+      "service": "instagram" | "facebook" | "whatsapp" | "tiktok" | "search" | "youtube" | "display" | null,
       "specs": string | null,
       "copy_notes": string | null,
       "deadline": string | null

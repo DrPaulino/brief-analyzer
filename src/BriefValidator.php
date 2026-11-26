@@ -9,6 +9,7 @@ final class BriefValidator
     private const OBJECTIVES = ['awareness', 'traffic', 'leads', 'sales'];
     private const PLATFORMS = ['meta', 'tiktok', 'google_ads', 'other'];
     private const FORMATS = ['video', 'static', 'carousel', 'search_ad', 'other'];
+    private const SERVICES = ['instagram', 'facebook', 'whatsapp', 'tiktok', 'search', 'youtube', 'display'];
     private const CONFIDENCE = ['low', 'medium', 'high'];
 
     /** @return string[] list of problems, empty when valid */
@@ -75,12 +76,16 @@ final class BriefValidator
         }
 
         $errors = [];
+        $service = $item['service'] ?? null;
 
         if (!in_array($item['platform'] ?? null, self::PLATFORMS, true)) {
             $errors[] = "deliverables[$i].platform must be one of " . implode(', ', self::PLATFORMS);
         }
         if (!in_array($item['format'] ?? null, self::FORMATS, true)) {
             $errors[] = "deliverables[$i].format must be one of " . implode(', ', self::FORMATS);
+        }
+        if ($service !== null && !in_array($service, self::SERVICES, true)) {
+          $errors[] = "deliverables[$i].service must be one of " . implode(', ', self::SERVICES) . ' or null';
         }
         foreach (['specs', 'copy_notes'] as $key) {
             $value = $item[$key] ?? null;

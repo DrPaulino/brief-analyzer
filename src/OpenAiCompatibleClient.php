@@ -27,6 +27,32 @@ final class OpenAiCompatibleClient implements LlmClient
             'response_format' => ['type' => 'json_object'],
         ], JSON_UNESCAPED_UNICODE);
 
+        $last = null;
+        foreach ([0, 1] as $attempt) {
+            try {
+                return $this->send($payload);
+            } catch (LlmException $e) {
+                $last = $e;
+                if (!$this->isRetryable($e)) {
+                    throw $e;
+                }
+                usleep(800_000); // wait 0.8 s before the second attempt
+            }
+        }
+
+        throw $last;
+    }
+
+    private function isRetryable(LlmException $e): bool
+    {
+        return $e->httpStatus === 0
+            || $e->httpStatus === 429
+            || $e->httpStatus >= 500
+            || str_contains($e->getMessage(), 'json_validate_failed');
+    }
+
+    private function send(string $payload): LlmResult
+    {
         $ch = curl_init(rtrim($this->baseUrl, '/') . '/chat/completions');
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
@@ -48,7 +74,8 @@ final class OpenAiCompatibleClient implements LlmClient
             throw new LlmException('Network error: ' . $error);
         }
         if ($status >= 400) {
-            throw new LlmException('Provider returned HTTP ' . $status, $status);
+            $code = json_decode((string) $body, true)['error']['code'] ?? null;
+            throw new LlmException('Provider returned HTTP ' . $status . ($code ? " ($code)" : ''), $status);
         }
 
         $data = json_decode((string) $body, true);
