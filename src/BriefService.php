@@ -104,6 +104,10 @@ final class BriefService
             return [
                 'platform' => $x['platform'],
                 'service' => $service,
+                'title' => isset($x['title']) ? mb_substr(trim($x['title']), 0, 60) : null,
+                'quantity' => $x['quantity'] ?? null,
+                'duration_seconds' => $x['duration_seconds'] ?? null,
+                'aspect_ratio' => $x['aspect_ratio'] ?? null,
                 'format' => $x['format'],
                 'specs' => $x['specs'] ?? null,
                 'copy_notes' => $x['copy_notes'] ?? null,
@@ -113,6 +117,7 @@ final class BriefService
 
         $brief = [
             'summary' => trim($d['summary']),
+            'campaign' => isset($d['campaign']) ? mb_substr(trim($d['campaign']), 0, 40) : null,
             'objective' => $d['objective'] ?? null,
             'audience' => $d['audience'] ?? null,
             'deliverables' => $deliverables,

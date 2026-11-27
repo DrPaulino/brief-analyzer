@@ -25,13 +25,14 @@ const save=b=>{try{localStorage.setItem(KEY,JSON.stringify(b))}catch{}};
 const fmt=d=>d?d.split('-').reverse().join('/'):'Sem prazo';
 function render(){
  const today=new Date().toLocaleDateString('sv-SE'),items=[];
- load().forEach((b,bi)=>b.deliverables.forEach((d,di)=>items.push({...d,bi,di,title:b.summary,k:key(d)})));
+ load().forEach((b,bi)=>b.deliverables.forEach((d,di)=>items.push({...d,bi,di,camp:b.campaign,k:key(d),title:d.title||b.summary})));
  $('#sum').textContent=items.length?items.filter(x=>!x.done).length+' de '+items.length+' entregas em aberto':'';
  if(!items.length){$('#board').innerHTML='<div class="card" style="flex:1"><p class="lbl">Nenhuma entrega ainda</p><p class="mut" style="margin:0 0 12px">Analise um pedido e clique em "Confirmar briefing". As entregas aparecem aqui, uma coluna por serviço.</p><a class="btn pri" href="/" style="display:inline-flex;align-items:center;text-decoration:none">Analisar um pedido</a></div>';return}
  $('#board').innerHTML=ORDER.map(k=>{
   const list=items.filter(x=>x.k===k).sort((a,b)=>(a.deadline||'9')<(b.deadline||'9')?-1:1);
   if(!list.length)return'';
-  const cards=list.map(x=>`<label class="kc g-${k}${x.done?' done':''}"><div class="kh"><span>${FM[x.format]}</span><span class="dl${x.deadline&&x.deadline<today&&!x.done?' od':''}">${fmt(x.deadline)}</span></div><div class="kb"><p class="ttl">${esc(x.title)}</p>${x.specs?'<p class="mut">'+esc(x.specs)+'</p>':''}${x.copy_notes?'<p class="mut">'+esc(x.copy_notes)+'</p>':''}<span class="ck"><input type="checkbox" data-b="${x.bi}" data-d="${x.di}"${x.done?' checked':''}>Concluído</span></div></label>`).join('');
+  const cards=list.map(x=>{const r=rel(x.deadline,today),m=missingOf(x),f=[x.quantity&&x.quantity+'×',x.duration_seconds&&x.duration_seconds+' s',x.aspect_ratio].filter(Boolean);
+  return `<label class="kc g-${k}${x.done?' done':''}"><div class="kh"><span class="hi">${ICON[SV[k].i||k]}${FM[x.format]}</span><span class="dl ${x.done?'':r.c}">${r.t}</span></div><div class="kb"><p class="ttl">${esc(x.title)}</p>${f.length?'<div class="facts">'+f.map(v=>'<span>'+esc(v)+'</span>').join('')+'</div>':''}${x.camp?'<p class="camp">'+esc(x.camp)+'</p>':''}<p class="rdy ${m.length?'warn':'ok'}">${m.length?'Falta: '+m.join(', '):'Pronto para produzir'}</p><span class="ck"><input type="checkbox" data-b="${x.bi}" data-d="${x.di}"${x.done?' checked':''}>Concluído</span></div></label>`}).join('');
   return `<section class="lane g-${k}"><div class="lh"><span class="ic">${ICON[SV[k].i||k]}</span><h2>${SV[k].n}</h2><span class="count">${list.filter(x=>!x.done).length}</span></div>${cards}</section>`}).join('')}
 document.addEventListener('change',e=>{const t=e.target;if(t.dataset.b===undefined)return;const d=load();d[+t.dataset.b].deliverables[+t.dataset.d].done=t.checked;save(d);render()});
 $('#clr').onclick=()=>{if(confirm('Remover todas as entregas do quadro?')){save([]);render()}};

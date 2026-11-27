@@ -21,3 +21,5 @@ const key=d=>SV[d.service]&&SV[d.service].p===d.platform&&!GENERIC.includes(d.se
 const chip=d=>{const k=key(d);return `<span class="chip-s g-${k}">${ICON[SV[k].i||k]}${SV[k].n}</span>`};
 const svOpts=(p,sel)=>'<option value="">A definir</option>'+Object.entries(SV).filter(([k,v])=>v.p===p&&!GENERIC.includes(k)).map(([k,v])=>`<option value="${k}"${k===sel?' selected':''}>${v.n}</option>`).join('');
 document.addEventListener('click',e=>{if(!e.target.closest('#th'))return;const t=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=t;try{localStorage.setItem('ba_theme',t)}catch{}});
+const rel=(dl,today)=>{if(!dl)return{t:'Sem prazo',c:''};const n=Math.round((new Date(dl+'T00:00')-new Date(today+'T00:00'))/864e5);return n<0?{t:'Atrasado '+(-n)+(n===-1?' dia':' dias'),c:'od'}:n===0?{t:'Hoje',c:'soon'}:n===1?{t:'Amanhã',c:'soon'}:{t:'em '+n+' dias',c:n<=3?'soon':''}};
+const missingOf=d=>[!d.deadline&&'prazo',!d.quantity&&'quantidade',!d.service&&['meta','google_ads'].includes(d.platform)&&'serviço'].filter(Boolean);

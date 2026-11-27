@@ -16,7 +16,7 @@
 <div class="grid">
 <section class="card">
 <label for="req">Descreva o pedido do cliente</label>
-<textarea id="req" rows="8" maxlength="2000" placeholder="Cole aqui o pedido, do jeito que o cliente enviou."></textarea>
+<textarea id="req" rows="8" maxlength="2000" spellcheck="false" placeholder="Cole aqui o pedido, do jeito que o cliente enviou."></textarea>
 <div class="mut" style="text-align:right;margin:4px 0 12px"><span id="cnt">0</span> / 2000</div>
 <div class="flex" style="margin-bottom:20px"><button class="btn pri" id="go" style="flex:1">Analisar pedido</button><button class="btn" id="clr">Limpar</button></div>
 <p class="lbl">Exemplos para testar</p>
@@ -24,9 +24,7 @@
 <p class="lbl">Recentes</p>
 <div id="hist"><p class="mut">Nada por aqui ainda.</p></div>
 </section>
-<section class="col" id="out" aria-live="polite">
-<div class="card"><p class="lbl">Resultado</p><p class="mut" style="margin:0">Escreva um pedido e clique em "Analisar pedido". O briefing aparece aqui.</p></div>
-</section>
+<section class="col" id="out" aria-live="polite"></section>
 </div>
 </div>
 <div class="sr" id="toast" role="status"></div>
@@ -36,7 +34,11 @@ const PL={meta:'Meta',tiktok:'TikTok',google_ads:'Google Ads',other:'Outra'};
 const FM={video:'Vídeo',static:'Imagem estática',carousel:'Carrossel',search_ad:'Anúncio de pesquisa',other:'Outro'};
 const OBJ={awareness:'Reconhecimento',traffic:'Tráfego',leads:'Leads',sales:'Vendas'};
 const CF={low:'baixa',medium:'média',high:'alta'};
-const EX=['Preciso de 3 vídeos de 15 segundos para Instagram Reels e TikTok, formato vertical 1080x1920, para lançar o tênis AirRun. O objetivo é vender, público de 18 a 30 anos que corre nas capitais. Entrega em 10/12. Orçamento de mídia de R$ 5.000. Usar o manual da marca.','Campanha de leads no Instagram para a clínica, com formulário e 2 imagens.','Faz uns anúncios aí pra divulgar a loja'];
+const EX=[
+'Campanha de lançamento do tênis AirRun. Objetivo: vender, público de corredores de 18 a 35 anos. Preciso de: 3 vídeos de 15 segundos em formato vertical 9:16 para os Reels do Instagram; 1 carrossel de 5 cards para o feed do Facebook; 1 arte estática 9:16 para o status do WhatsApp; 2 vídeos de 20 segundos para o TikTok; 1 anúncio de pesquisa no Google com 3 títulos; 1 vídeo de 30 segundos para o YouTube; 3 banners para a rede de display do Google; e 1 post para o LinkedIn. Entrega em 15/12 e usar o manual da marca.',
+'Preciso de 3 vídeos de 15 segundos para Instagram Reels e TikTok, formato vertical 1080x1920, para lançar o tênis AirRun. O objetivo é vender, público de 18 a 30 anos que corre nas capitais. Entrega em 10/12. Orçamento de mídia de R$ 5.000. Usar o manual da marca.',
+'Campanha de leads no Instagram para a clínica, com formulário e 2 imagens.'
+];
 let cur=null,last='',busy=false;
 const opts=(m,s,blank)=>(blank?'<option value="">Não informado</option>':'')+Object.entries(m).map(([k,v])=>`<option value="${k}"${k===s?' selected':''}>${v}</option>`).join('');
 const out=h=>{$('#out').innerHTML=h;$('#out').setAttribute('aria-busy','false')};
@@ -45,9 +47,13 @@ function store(){try{return JSON.parse(localStorage.getItem('ba_hist')||'[]')}ca
 function save(text,data){try{localStorage.setItem('ba_hist',JSON.stringify([{text,data},...store().filter(x=>x.text!==text)].slice(0,5)))}catch{}drawHist()}
 function drawHist(){const h=store();$('#hist').innerHTML=h.length?h.map((x,i)=>`<button class="hist" data-h="${i}">${esc(x.text.slice(0,60))}${x.text.length>60?'…':''}</button>`).join(''):'<p class="mut">Nada por aqui ainda.</p>'}
 function card(d,i){return `<article class="card"><div class="flex between" style="margin-bottom:8px">${chip(d)}<button class="btn" data-del="${i}" aria-label="Remover entregável ${i+1}">Remover</button></div>
+<div class="row"><label for="ti${i}">Título</label><input id="ti${i}" data-i="${i}" data-k="title" value="${esc(d.title)}" placeholder="Nome curto do entregável"></div>
 <div class="row"><label for="p${i}">Plataforma</label><select id="p${i}" data-i="${i}" data-k="platform">${opts(PL,d.platform)}</select></div>
 <div class="row"><label for="f${i}">Formato</label><select id="f${i}" data-i="${i}" data-k="format">${opts(FM,d.format)}</select></div>
 <div class="row"><label for="v${i}">Serviço</label><select id="v${i}" data-i="${i}" data-k="service">${svOpts(d.platform,d.service)}</select></div>
+<div class="row"><label for="q${i}">Quantidade</label><input id="q${i}" type="number" min="1" max="99" data-i="${i}" data-k="quantity" value="${esc(d.quantity)}" placeholder="Não informado" class="${d.quantity?'':'empty'}"></div>
+<div class="row"><label for="du${i}">Duração (s)</label><input id="du${i}" type="number" min="1" max="3600" data-i="${i}" data-k="duration_seconds" value="${esc(d.duration_seconds)}" placeholder="Não se aplica"></div>
+<div class="row"><label for="ar${i}">Proporção</label><input id="ar${i}" data-i="${i}" data-k="aspect_ratio" value="${esc(d.aspect_ratio)}" placeholder="ex.: 9:16"></div>
 <div class="row"><label for="s${i}">Specs</label><input id="s${i}" data-i="${i}" data-k="specs" value="${esc(d.specs)}" placeholder="Não informado" class="${d.specs?'':'empty'}"></div>
 <div class="row"><label for="n${i}">Notas</label><input id="n${i}" data-i="${i}" data-k="copy_notes" value="${esc(d.copy_notes)}" placeholder="Não informado"></div>
 <div class="row"><label for="d${i}">Prazo</label><input id="d${i}" type="date" data-i="${i}" data-k="deadline" value="${esc(d.deadline)}" class="${d.deadline?'':'empty'}"></div></article>`}
@@ -56,11 +62,12 @@ $('#meta').textContent=`Modelo: ${m.provider} · ${(m.latency_ms/1000).toFixed(1
 out(`<div class="card flex between"><div><p class="lbl" style="margin:0">Análise concluída</p><p class="mut" style="margin:2px 0 0">Gerado por IA. Revise antes de usar.</p></div><span class="badge ${low?'b-warn':''}">Confiança ${CF[b.confidence]}${low?': revise os campos':''}</span></div>
 ${b.missing_info.length?`<div class="warn"><p>Faltam ${b.missing_info.length} informações</p>${b.missing_info.map((q,i)=>`<label for="q${i}" style="font-weight:400">${esc(q)}</label><input id="q${i}" data-q="${esc(q)}" placeholder="Sua resposta">`).join('')}<button class="btn" id="re" style="background:var(--warntx);color:var(--accink);border-color:var(--warntx)">Responder e reanalisar</button></div>`:''}
 <div class="card"><label for="sm">Resumo</label><textarea id="sm" rows="3" data-top="summary">${esc(b.summary)}</textarea>
-<div class="row" style="margin-top:12px"><label for="ob">Objetivo</label><select id="ob" data-top="objective">${opts(OBJ,b.objective,1)}</select></div>
+<div class="row" style="margin-top:12px"><label for="cp">Campanha</label><input id="cp" data-top="campaign" value="${esc(b.campaign)}" placeholder="Nome curto da campanha"></div>
+<div class="row"><label for="ob">Objetivo</label><select id="ob" data-top="objective">${opts(OBJ,b.objective,1)}</select></div>
 <div class="row"><label for="au">Público</label><input id="au" data-top="audience" value="${esc(b.audience)}" placeholder="Não informado" class="${b.audience?'':'empty'}"></div></div>
 <h2>Entregáveis (${b.deliverables.length})</h2>
 ${b.deliverables.map(card).join('')||'<p class="mut">Nenhum entregável identificado.</p>'}
-<div class="flex"><button class="btn" id="cj">Copiar JSON</button><button class="btn" id="ct">Copiar como texto</button><button class="btn pri" id="ok" style="margin-left:auto">${cur.confirmed?'Briefing confirmado':'Confirmar briefing'}</button></div>`)}
+<p class="gate" id="gate" role="status" hidden></p><div class="flex"><button class="btn" id="cj">Copiar JSON</button><button class="btn" id="ct">Copiar como texto</button><div class="flex" style="margin-left:auto"><button class="btn" id="ovr" hidden>Confirmar mesmo assim</button><button class="btn pri" id="ok" aria-describedby="gate">Confirmar briefing</button></div></div>`);updGate()}
 function showErr(e){out(`<div class="err" role="alert"><p style="margin:0 0 8px;font-weight:700">${esc(e.message)}</p>${e.retryable?'<button class="btn" id="retry">Tentar novamente</button>':''}</div>`)}
 async function analyze(text){
  if(busy)return;text=text.trim();
@@ -71,16 +78,16 @@ async function analyze(text){
  try{res=await fetch(API+'/api/briefs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,language:'pt-BR'})})}
  catch{return location.href='/error.html?code=offline'}
  try{data=await res.json()}catch{}
- busy=false;$('#go').disabled=false;$('#go').textContent='Analisar pedido';
+ busy=false;sync();$('#go').textContent='Analisar pedido';
  if(res.ok){cur=data;last=text;save(text,data);render();return}
  if(res.status===500||!data.error)return location.href='/error.html?code='+res.status;
  showErr(data.error)}
 function asText(b){return['Resumo: '+b.summary,'Objetivo: '+(OBJ[b.objective]||'não informado'),'Público: '+(b.audience||'não informado'),'','Entregáveis:',...b.deliverables.map((d,i)=>`${i+1}. ${PL[d.platform]} · ${FM[d.format]} · ${d.specs||'specs não informadas'} · prazo: ${d.deadline||'não informado'}${d.copy_notes?' · '+d.copy_notes:''}`),...(b.missing_info.length?['','Pendências:',...b.missing_info.map(q=>'- '+q)]:[])].join('\n')}
 async function copy(t,m){try{await navigator.clipboard.writeText(t);toast(m)}catch{toast('Não foi possível copiar')}}
-$('#req').addEventListener('input',e=>{$('#cnt').textContent=e.target.value.length});
+$('#req').addEventListener('input',e=>{$('#cnt').textContent=e.target.value.length;sync()});
 $('#go').onclick=()=>analyze($('#req').value);
-$('#clr').onclick=()=>{$('#req').value='';$('#cnt').textContent='0';cur=null;$('#meta').textContent='';out('<div class="card"><p class="mut" style="margin:0">Escreva um pedido e clique em "Analisar pedido".</p></div>')};
-$('#ex').innerHTML=['Pedido completo','Leads no Meta','Pedido incompleto'].map((t,i)=>`<button class="chip" data-e="${i}">${t}</button>`).join('');
+$('#clr').onclick=()=>{$('#req').value='';$('#cnt').textContent='0';cur=null;$('#meta').textContent='';out(EMPTY)};
+$('#ex').innerHTML=['Super completo','Pedido completo','Leads no Meta'].map((t,i)=>`<button class="chip" data-e="${i}">${t}</button>`).join('');
 document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
  if(t.dataset.e){$('#req').value=EX[t.dataset.e];$('#cnt').textContent=EX[t.dataset.e].length}
  else if(t.dataset.h){const x=store()[t.dataset.h];$('#req').value=x.text;$('#cnt').textContent=x.text.length;cur=x.data;last=x.text;render()}
@@ -88,17 +95,24 @@ document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)r
  else if(t.id==='retry')analyze($('#req').value);
  else if(t.id==='cj')copy(JSON.stringify(cur.brief,null,2),'JSON copiado');
  else if(t.id==='ct')copy(asText(cur.brief),'Texto copiado');
- else if(t.id==='ok'){cur.confirmed=true;t.textContent='Briefing confirmado';toBoard()}
+ else if(t.id==='ok'||t.id==='ovr'){if(t.id==='ovr'&&!confirm('Faltam informações ('+gaps().join(', ')+'). Confirmar mesmo assim?'))return;cur.confirmed=true;updGate();toBoard()}
  else if(t.id==='re'){const a=[...document.querySelectorAll('[data-q]')].filter(i=>i.value.trim()).map(i=>`- ${i.dataset.q} ${i.value.trim()}`);
   if(!a.length)return toast('Responda ao menos uma pergunta');
   const txt=last+'\n\nInformações adicionais:\n'+a.join('\n');$('#req').value=txt;$('#cnt').textContent=txt.length;analyze(txt)}});
 document.addEventListener('input',e=>{const t=e.target;if(!cur)return;
- if(t.dataset.k){const d=cur.brief.deliverables[t.dataset.i];d[t.dataset.k]=t.value||null;cur.confirmed=false;
+ if(t.dataset.k){const d=cur.brief.deliverables[t.dataset.i];d[t.dataset.k]=t.type==='number'?(t.value===''?null:+t.value):(t.value||null);cur.confirmed=false;
   if(t.dataset.k==='platform'){d.service=null;t.closest('.card').querySelector('[data-k=service]').innerHTML=svOpts(t.value,null)}
   if(t.dataset.k==='platform'||t.dataset.k==='service')t.closest('.card').querySelector('.chip-s').outerHTML=chip(d);
   if(t.type!=='select-one')t.classList.toggle('empty',!t.value)}
  else if(t.dataset.top){cur.brief[t.dataset.top]=t.value||null;cur.confirmed=false}});
-function toBoard(){try{const b=JSON.parse(localStorage.getItem('ba_board')||'[]').filter(x=>x.id!==cur.id);b.unshift({id:cur.id,summary:cur.brief.summary,deliverables:cur.brief.deliverables.map(d=>({...d,done:false}))});localStorage.setItem('ba_board',JSON.stringify(b));toast('Briefing enviado para as equipes')}catch{toast('Não foi possível salvar')}}
+function toBoard(){try{const b=JSON.parse(localStorage.getItem('ba_board')||'[]').filter(x=>x.id!==cur.id);b.unshift({id:cur.id,summary:cur.brief.summary,campaign:cur.brief.campaign,deliverables:cur.brief.deliverables.map(d=>({...d,done:false}))});localStorage.setItem('ba_board',JSON.stringify(b));toast('Briefing enviado para as equipes')}catch{toast('Não foi possível salvar')}}
+const EMPTY=`<div class="card empty"><p class="lbl">Resultado</p><p class="mut" style="margin:0">Escreva um pedido e clique em "Analisar pedido". O briefing aparece aqui.</p><div class="wf" aria-hidden="true"><p class="wfl">Resumo</p><div class="ph w90"></div><div class="ph w75"></div><div class="wfrow"><span class="ph"></span><span class="ph"></span></div><p class="wfl">Entregáveis</p><div class="wfcard"><div class="wfh"></div><div class="wfb"><div class="ph w60"></div><div class="wfrow"><span class="ph"></span><span class="ph"></span><span class="ph"></span></div><div class="ph w30"></div></div></div><div class="wfcard"><div class="wfh"></div><div class="wfb"><div class="ph w75"></div><div class="wfrow"><span class="ph"></span><span class="ph"></span></div><div class="ph w40"></div></div></div></div></div>`;
+function sync(){const e=!$('#req').value.trim();$('#go').disabled=e||busy;$('#clr').disabled=e}
+document.addEventListener('click',sync);
+function gaps(){const b=cur.brief,m=new Set(),q=b.missing_info.length;b.deliverables.forEach(d=>missingOf(d).forEach(x=>m.add(x)));return[!b.deliverables.length&&'nenhum entregável identificado',q&&q+(q===1?' pergunta sem resposta':' perguntas sem resposta'),...m].filter(Boolean)}
+function updGate(){const ok=$('#ok');if(!ok||!cur)return;const g=gaps(),open=g.length>0&&!cur.confirmed;ok.textContent=cur.confirmed?'Briefing confirmado':'Confirmar briefing';ok.disabled=open;$('#ovr').hidden=!open;$('#gate').hidden=!open;$('#gate').textContent=open?'Antes de confirmar, resolva: '+g.join(', ')+'.':''}
+document.addEventListener('input',()=>{if(cur)updGate()});
+out(EMPTY);sync();
 drawHist();
 </script>
 </body>

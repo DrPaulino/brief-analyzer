@@ -28,6 +28,10 @@ final class BriefValidator
         if (is_string($summary) && mb_strlen($summary) > 500) {
           $errors[] = 'summary must be at most 500 characters';
         }
+        $campaign = $data['campaign'] ?? null;
+        if ($campaign !== null && !is_string($campaign)) {
+            $errors[] = 'campaign must be a string or null';
+        }
         $objective = $data['objective'] ?? null;
         if ($objective !== null && !in_array($objective, self::OBJECTIVES, true)) {
             $errors[] = 'objective must be one of ' . implode(', ', self::OBJECTIVES) . ' or null';
@@ -86,6 +90,20 @@ final class BriefValidator
         }
         if ($service !== null && !in_array($service, self::SERVICES, true)) {
           $errors[] = "deliverables[$i].service must be one of " . implode(', ', self::SERVICES) . ' or null';
+        }
+        $title = $item['title'] ?? null;
+        if ($title !== null && !is_string($title)) {
+            $errors[] = "deliverables[$i].title must be a string or null";
+        }
+        foreach (['quantity' => 99, 'duration_seconds' => 3600] as $key => $max) {
+            $n = $item[$key] ?? null;
+            if ($n !== null && (!is_int($n) || $n < 1 || $n > $max)) {
+                $errors[] = "deliverables[$i].$key must be a whole number from 1 to $max or null";
+            }
+        }
+        $ratio = $item['aspect_ratio'] ?? null;
+        if ($ratio !== null && (!is_string($ratio) || !preg_match('/^\d{1,2}:\d{1,2}$/', $ratio))) {
+            $errors[] = "deliverables[$i].aspect_ratio must look like 9:16 or be null";
         }
         foreach (['specs', 'copy_notes'] as $key) {
             $value = $item[$key] ?? null;
